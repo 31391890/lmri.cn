@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> 大模型研究院（概念站） | 引领AI新时代- lmri.cn</title>
+    <style>
+/* 圆形轨道旋转背景特效 */
+.bg-animation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: radial-gradient(ellipse at center, #0a0a1a 0%, #050510 100%);
+    overflow: hidden;
+}
+
+/* 轨道环 */
+.orbit-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 1px solid rgba(100, 150, 255, 0.15);
+    box-shadow: 0 0 20px rgba(100, 150, 255, 0.1);
+}
+
+/* 轨道容器（带动粒子一起转） */
+.orbit-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    animation: orbitRotate linear infinite;
+}
+
+/* 粒子节点 */
+.particle-node {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: rgba(100, 150, 255, 0.9);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(100, 150, 255, 0.8),
+                0 0 16px rgba(100, 150, 255, 0.5);
+    animation: nodeGlow 2s ease-in-out infinite;
+}
+
+/* 粒子呼吸发光 */
+@keyframes nodeGlow {
+    0%, 100% {
+        opacity: 0.7;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.3);
+    }
+}
+
+/* 轨道旋转动画 */
+@keyframes orbitRotate {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #2563eb; --secondary: #7c3aed; --accent: #06b6d4;
+            --dark: #1e293b; --light: #f8fafc; --text-normal: #334155; /* 新增：常规文本色 */
+            --text-light: #475569; /* 新增：浅色文本色 */
+        }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            line-height: 1.6; color: var(--dark);
+            background: var(--light); overflow-x: hidden;
+        }
+        .bg-animation {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .navbar {
+            background: rgba(255,255,255,0.98); padding: 1.2rem 5%;
+            position: fixed; width: 100%; top: 0; z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .nav-container {
+            display: flex; justify-content: space-between; align-items: center;
+            max-width: 1600px; margin: 0 auto;
+        }
+        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .logo-icon {
+            width: 45px; height: 45px; background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            border-radius: 10px; display: flex; align-items: center;
+            justify-content: center; color: white; font-weight: bold;
+        }
+        .logo-text { font-size: 1.8rem; font-weight: 700; background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-menu { display: flex; list-style: none; gap: 2rem; }
+        .nav-menu a {
+            text-decoration: none; color: var(--dark); font-weight: 500;
+            padding: 0.5rem 1rem; border-radius: 8px; transition: all 0.3s;
+        }
+        .nav-menu a:hover { color: var(--primary); }
+        .hero {
+            min-height: 100vh; display: flex; align-items: center;
+            justify-content: center; text-align: center; color: white;
+            padding: 120px 5% 50px; position: relative;
+        }
+        .hero-content { position: relative; z-index: 1; max-width: 1200px; }
+        .hero-badge {
+            display: inline-block; background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1.5rem; border-radius: 50px; margin-bottom: 2rem;
+            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3);
+        }
+        .hero-content h1 { font-size: 4.5rem; margin-bottom: 1.5rem; text-shadow: 2px 2px 8px rgba(0,0,0,0.3); }
+        .hero-content p { font-size: 1.6rem; margin-bottom: 3rem; opacity: 0.95; }
+        .hero-buttons { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 1.2rem 2.5rem; border-radius: 12px; font-weight: 600;
+            font-size: 1.1rem; text-decoration: none; transition: all 0.3s;
+            cursor: pointer; border: none;
+        }
+        .btn-primary { background: white; color: var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .btn-primary:hover { transform: translateY(-5px); }
+        .btn-secondary { background: transparent; color: white; border: 2px solid white; }
+        .btn-secondary:hover { background: white; color: var(--primary); }
+        .stats {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem;
+            max-width: 1400px; margin: -80px auto 0; padding: 0 5%;
+            position: relative; z-index: 10;
+        }
+        .stat-card {
+            background: white; padding: 2.5rem; border-radius: 15px;
+            text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            transition: all 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-10px); }
+        .stat-number { font-size: 3rem; font-weight: 700; background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
+        .stat-label { color: #64748b; font-size: 1.1rem; }
+        .section { padding: 100px 5%; max-width: 1600px; margin: 0 auto; }
+        .section-header { text-align: center; margin-bottom: 5rem; }
+        .section-subtitle { color: var(--primary); font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 2px; }
+        .section-title { font-size: 3.5rem; color: var(--dark); margin-bottom: 1.5rem; }
+        .section-desc { font-size: 1.2rem; color: var(--text-normal); max-width: 800px; margin: 0 auto; line-height: 1.8; } /* 修改：文字颜色加深 */
+        .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+        .overview-image {
+            position: relative; border-radius: 20px; overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2); height: 500px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 2rem;
+        }
+        .overview-content h3 { font-size: 2.5rem; margin-bottom: 1.5rem; color: var(--dark); }
+        .overview-content p { color: var(--text-normal); margin-bottom: 2rem; font-size: 1.1rem; line-height: 1.8; } /* 修改：文字颜色加深 */
+        .feature-list { list-style: none; }
+        .feature-list li {
+            padding: 1rem 0; padding-left: 2.5rem; position: relative;
+            color: var(--text-normal); font-size: 1.1rem; /* 修改：文字颜色加深 */
+        }
+        .feature-list li::before {
+            content: '✓'; position: absolute; left: 0; top: 50%;
+            transform: translateY(-50%); width: 25px; height: 25px;
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .fields-section { background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%); }
+        .fields-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2.5rem; }
+        .field-card {
+            background: white; padding: 3rem; border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08); transition: all 0.4s;
+            position: relative; overflow: hidden;
+        }
+        .field-card:hover { transform: translateY(-15px); box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+        .field-icon {
+            width: 70px; height: 70px; background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            border-radius: 15px; display: flex; align-items: center;
+            justify-content: center; margin-bottom: 2rem; font-size: 2rem; color: white;
+        }
+        .field-card h3 { font-size: 1.8rem; margin-bottom: 1rem; color: var(--dark); }
+        .field-card p { color: var(--text-light); line-height: 1.8; margin-bottom: 1.5rem; } /* 修改：文字颜色加深 */
+        .field-link { color: var(--primary); text-decoration: none; font-weight: 600; }
+        .models-section { background: var(--dark); color: white; }
+        .models-section .section-title { color: white; }
+        .models-section .section-desc { color: #e2e8f0; } /* 修改：浅色背景下文字更亮 */
+        /* 核心修改：models-grid改为单排 */
+        .models-grid { display: grid; grid-template-columns: 1fr; gap: 3rem; }
+        .model-card {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            padding: 3rem; border-radius: 20px; backdrop-filter: blur(10px);
+            transition: all 0.4s; position: relative;
+        }
+        .model-card:hover { background: rgba(255,255,255,0.1); transform: translateY(-10px); }
+        .model-badge {
+            position: absolute; top: 20px; right: 20px;
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); padding: 0.5rem 1rem;
+            border-radius: 50px; font-size: 0.9rem; font-weight: 600;
+        }
+        .model-card h3 { font-size: 2rem; margin-bottom: 1rem; color: white; }
+        .model-card p { color: #e2e8f0; margin-bottom: 2rem; line-height: 1.8; } /* 修改：文字更亮 */
+        .model-specs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        .spec-item { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px; text-align: center; }
+        .spec-value { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+        .spec-label { font-size: 0.9rem; color: #e2e8f0; } /* 修改：文字更亮 */
+        .city-section { background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%); }
+        .city-showcase { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; margin-bottom: 4rem; }
+        .city-image {
+            position: relative; border-radius: 20px; overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15); height: 450px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 2rem;
+        }
+        .city-content h3 { font-size: 2.5rem; margin-bottom: 1.5rem; color: var(--dark); }
+        .city-content p { color: var(--text-normal); margin-bottom: 2rem; font-size: 1.1rem; line-height: 1.8; } /* 修改：文字颜色加深 */
+        .city-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 2rem; }
+        .city-stat { text-align: center; padding: 2rem; background: white; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); }
+        .city-stat-number { font-size: 2.5rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; }
+        .city-stat-label { color: var(--text-light); font-size: 1rem; } /* 修改：文字颜色加深 */
+        /* 核心修改：news-grid改为单排 */
+        .news-grid { display: grid; grid-template-columns: 1fr; gap: 2.5rem; }
+        .news-card {
+            background: white; border-radius: 20px; overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08); transition: all 0.4s;
+        }
+        .news-card:hover { transform: translateY(-10px); box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+        .news-image {
+            height: 220px; background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); position: relative;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 3rem;
+        }
+        .news-date {
+            position: absolute; top: 20px; right: 20px;
+            background: white; padding: 0.8rem 1.5rem; border-radius: 10px;
+            text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        .news-date .day { font-size: 1.8rem; font-weight: 700; color: var(--primary); line-height: 1; }
+        .news-date .month { font-size: 0.9rem; color: var(--text-light); text-transform: uppercase; } /* 修改：文字颜色加深 */
+        .news-content { padding: 2rem; }
+        .news-category { color: var(--primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 1rem; display: inline-block; }
+        .news-content h3 { font-size: 1.5rem; margin-bottom: 1rem; color: var(--dark); }
+        .news-content p { color: var(--text-normal); margin-bottom: 1.5rem; line-height: 1.8; } /* 修改：文字颜色加深 */
+        .news-link { color: var(--primary); text-decoration: none; font-weight: 600; }
+        .contact-section { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; padding: 100px 5%; }
+        .contact-section .section-title { color: white; }
+        .contact-section .section-desc { color: #e2e8f0; } /* 修改：文字更亮 */
+        .contact-container { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; max-width: 1400px; margin: 0 auto; }
+        .contact-info h3 { font-size: 2.5rem; margin-bottom: 2rem; }
+        .contact-info p { color: #e2e8f0; margin-bottom: 3rem; font-size: 1.1rem; line-height: 1.8; } /* 修改：文字更亮 */
+        .contact-details { margin-bottom: 3rem; }
+        .contact-item { display: flex; align-items: flex-start; gap: 1.5rem; margin-bottom: 2rem; }
+        .contact-icon {
+            width: 50px; height: 50px; background: rgba(255,255,255,0.1);
+            border-radius: 12px; display: flex; align-items: center;
+            justify-content: center; font-size: 1.5rem; flex-shrink: 0;
+        }
+        .contact-text h4 { font-size: 1.2rem; margin-bottom: 0.5rem; }
+        .contact-text p { color: #e2e8f0; margin: 0; font-size: 1rem; } /* 修改：文字更亮 */
+        .social-links { display: flex; gap: 1rem; }
+        .social-link {
+            width: 45px; height: 45px; background: rgba(255,255,255,0.1);
+            border-radius: 10px; display: flex; align-items: center;
+            justify-content: center; color: white; text-decoration: none;
+            transition: all 0.3s; font-size: 1.2rem;
+        }
+        .social-link:hover { background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); transform: translateY(-5px); }
+        .contact-form-wrapper { background: white; padding: 3.5rem; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .contact-form-wrapper h3 { font-size: 2rem; color: var(--dark); margin-bottom: 2rem; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.8rem; font-weight: 600; color: var(--dark); font-size: 1rem; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 1rem 1.2rem; border: 2px solid #e2e8f0;
+            border-radius: 10px; font-size: 1rem; font-family: inherit;
+            transition: all 0.3s; background: #f8fafc;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none; border-color: var(--primary); background: white;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+        .submit-btn {
+            width: 100%; background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); color: white;
+            padding: 1.2rem 2rem; border: none; border-radius: 10px;
+            cursor: pointer; font-size: 1.1rem; font-weight: 600;
+            transition: all 0.3s; box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+        }
+        .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(37, 99, 235, 0.4); }
+        .footer { background: #0f172a; color: white; padding: 80px 5% 30px; }
+        .footer-container { max-width: 1600px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 4rem; margin-bottom: 4rem; }
+        .footer-brand .logo { margin-bottom: 1.5rem; }
+        .footer-brand p { color: #e2e8f0; line-height: 1.8; margin-bottom: 2rem; } /* 修改：文字更亮 */
+        .footer-column h4 { font-size: 1.3rem; margin-bottom: 1.5rem; color: white; }
+        .footer-column ul { list-style: none; }
+        .footer-column ul li { margin-bottom: 0.8rem; }
+        .footer-column ul li a { color: #e2e8f0; text-decoration: none; transition: color 0.3s; } /* 修改：文字更亮 */
+        .footer-column ul li a:hover { color: white; }
+        .footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem; text-align: center; color: #e2e8f0; } /* 修改：文字更亮 */
+        
+        /* 响应式适配 */
+        @media (max-width: 1200px) {
+            .overview-grid, .city-showcase, .contact-container { grid-template-columns: 1fr; gap: 3rem; }
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .footer-container { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .nav-menu { display: none; }
+            .hero-content h1 { font-size: 3rem; }
+            .section-title { font-size: 2.5rem; }
+            .stats { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            .footer-container { grid-template-columns: 1fr; gap: 2rem; }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon"><p>
+<img border="0" src="http://pan.cisa.cc/view.php/0720947f402e4cb554cec517e456ea93.png" width="290" height="70"></p></div>
+                <span class="logo-text"></span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="dn.html">域名释义</a></li>
+                <li><a href="#home">首页</a></li>
+                <li><a href="#overview">概况</a></li>
+                <li><a href="#fields">领域</a></li>
+                <li><a href="#models">模型</a></li>
+                <li><a href="#city">城市</a></li>
+                <li><a href="#news">新闻</a></li>
+                <li><a href="#contact">联系我们</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">🏆 国家级人工智能研究机构</div>
+            <h1>大模型研究院<p>Large Model Research Institute</h1>
+            <p>引领人工智能新时代，赋能智慧城市未来<br>专注通用大模型 · 行业大模型 · 多模态智能 · 智慧城市大模型研究与应用<br>打造万亿参数级超大规模模型<p>注意：本站为域名展示站，无实际功能，域名转让合作联系ai@altoai.cn</p>
+            <div class="hero-buttons">
+                <a href="#overview" class="btn btn-primary">了解研究院 →</a>
+                <a href="#models" class="btn btn-secondary">探索模型</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-number">200+</div>
+            <div class="stat-label">顶尖研究人员</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">500+</div>
+            <div class="stat-label">顶级论文发表</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">50+</div>
+            <div class="stat-label">专利授权</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">100+</div>
+            <div class="stat-label">合作机构</div>
+        </div>
+    </div>
+
+    <section id="overview" class="section">
+        <div class="section-header">
+            <div class="section-subtitle">ABOUT US</div>
+            <h2 class="section-title">研究院概况</h2>
+            <p class="section-desc">大模型研究院成立于2024年，专注于大语言模型、计算机视觉、语音识别等前沿人工智能技术的研究与应用，致力于推动人工智能技术在智慧城市、医疗健康、教育等领域的落地实践。</p>
+        </div>
+        <div class="overview-grid">
+            <div class="overview-image"><img src="http://pan.cisa.cc/view.php/47b8188c7505261ec56dc1cd9a261c08.png width="670" height="448"></div>
+            <div class="overview-content">
+                <h3>我们的使命</h3>
+                <p>通过前沿的人工智能技术研发，赋能各行各业数字化转型，提升社会生产效率，改善人民生活质量。我们坚信人工智能将成为推动人类文明进步的重要力量。</p>
+                <ul class="feature-list">
+                    <li>自主研发万亿参数级大模型技术</li>
+                    <li>多模态融合与跨领域应用能力</li>
+                    <li>开放平台与生态合作伙伴计划</li>
+                    <li>产学研深度融合创新模式</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section id="fields" class="section fields-section">
+        <div class="section-header">
+            <div class="section-subtitle">RESEARCH FIELDS</div>
+            <h2 class="section-title">研究领域</h2>
+            <p class="section-desc">我们聚焦人工智能核心技术，在多个前沿领域开展深入研究，推动技术创新与产业应用。</p>
+        </div>
+        <div class="fields-grid">
+            <div class="field-card">
+                <div class="field-icon">🤖</div>
+                <h3>大语言模型</h3>
+                <p>研发超大规模预训练语言模型，支持多语言理解与生成，在对话、写作、编程等任务上表现优异，已应用于多个行业场景。</p>
+                <a href="#" class="field-link">了解更多 →</a>
+            </div>
+            <div class="field-card">
+                <div class="field-icon">👁️</div>
+                <h3>计算机视觉</h3>
+                <p>图像识别、目标检测、视频分析等技术，广泛应用于安防、医疗、工业检测等领域，准确率行业领先。</p>
+                <a href="#" class="field-link">了解更多 →</a>
+            </div>
+            <div class="field-card">
+                <div class="field-icon">🚗</div>
+                <h3>智慧交通</h3>
+                <p>利用AI优化交通流量，智能信号灯控制，自动驾驶技术，打造高效安全的智慧交通体系，减少拥堵与事故。</p>
+                <a href="#" class="field-link">了解更多 →</a>
+            </div>
+            <div class="field-card">
+                <div class="field-icon">🏥</div>
+                <h3>智慧医疗</h3>
+                <p>AI辅助诊断、药物研发、健康管理，提升医疗服务效率和质量，让医疗更智能、更普惠，惠及更多患者。</p>
+                <a href="#" class="field-link">了解更多 →</a>
+            </div>
+            <div class="field-card">
+                <div class="field-icon">📚</div>
+                <h3>智慧教育</h3>
+                <p>个性化学习推荐、智能评测、虚拟教师，推动教育公平，提升教学质量，让每个孩子都能获得优质教育资源。</p>
+                <a href="#" class="field-link">了解更多 →</a>
+            </div>
+            <div class="field-card">
+                <div class="field-icon">🏛️</div>
+                <h3>智慧政务</h3>
+                <p>政务服务智能化，数据驱动决策，提升政府治理能力和公共服务水平，打造阳光高效的数字政府。</p>
+                <a href="#" class="field-link">了解更多 →</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="models" class="section models-section">
+        <div class="section-header">
+            <div class="section-subtitle">OUR MODELS</div>
+            <h2 class="section-title">核心模型</h2>
+            <p class="section-desc">自主研发的系列大模型，在多个基准测试中达到国际领先水平，为各行业提供强大的AI能力支撑。</p>
+        </div>
+        <div class="models-grid">
+            <div class="model-card">
+                <span class="model-badge">旗舰版</span>
+                <h3>Lmri-LLM-70B</h3>
+                <p>700亿参数大语言模型，支持100+语言，在多项基准测试中达到SOTA水平，适用于复杂任务处理。</p>
+                <div class="model-specs">
+                    <div class="spec-item">
+                        <div class="spec-value">70B</div>
+                        <div class="spec-label">参数量</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-value">100+</div>
+                        <div class="spec-label">支持语言</div>
+                    </div>
+                </div>
+            </div>
+            <div class="model-card">
+                <span class="model-badge">视觉</span>
+                <h3>Lmri-Vision</h3>
+                <p>多模态视觉模型，支持图像理解、生成、编辑，准确率超过95%，适用于图像分析、创意设计等场景。</p>
+                <div class="model-specs">
+                    <div class="spec-item">
+                        <div class="spec-value">95%</div>
+                        <div class="spec-label">准确率</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-value">4K</div>
+                        <div class="spec-label">分辨率</div>
+                    </div>
+                </div>
+            </div>
+            <div class="model-card">
+                <span class="model-badge">语音</span>
+                <h3>Lmri-Speech</h3>
+                <p>端到端语音识别与合成模型，支持实时翻译，识别准确率98%，适用于会议记录、客服等场景。</p>
+                <div class="model-specs">
+                    <div class="spec-item">
+                        <div class="spec-value">98%</div>
+                        <div class="spec-label">识别率</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-value">50ms</div>
+                        <div class="spec-label">延迟</div>
+                    </div>
+                </div>
+            </div>
+            <div class="model-card">
+                <span class="model-badge">代码</span>
+                <h3>Lmri-Code</h3>
+                <p>代码生成与理解模型，支持20+编程语言，帮助开发者提升效率，适用于代码补全、调试等场景。</p>
+                <div class="model-specs">
+                    <div class="spec-item">
+                        <div class="spec-value">20+</div>
+                        <div class="spec-label">编程语言</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-value">3x</div>
+                        <div class="spec-label">效率提升</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="city" class="section city-section">
+        <div class="section-header">
+            <div class="section-subtitle">SMART CITY</div>
+            <h2 class="section-title">智慧城市解决方案</h2>
+            <p class="section-desc">我们提供全方位的智慧城市解决方案，通过人工智能技术赋能城市管理，提升居民生活品质。</p>
+        </div>
+        <div class="city-showcase">
+            <div class="city-image"><img src="http://pan.cisa.cc/view.php/8bb74c8a98e84f7eb4ae379aae2ed197.jpg width="670" height="448"></div>
+            <div class="city-content">
+                <h3>城市大脑平台</h3>
+                <p>整合城市各类数据，实现城市运行状态实时监测、智能分析和预测预警。通过AI算法优化资源配置，提升城市管理效率，为市民创造更美好的生活环境。</p>
+                <div class="city-stats">
+                    <div class="city-stat">
+                        <div class="city-stat-number">50+</div>
+                        <div class="city-stat-label">合作城市</div>
+                    </div>
+                    <div class="city-stat">
+                        <div class="city-stat-number">1000万+</div>
+                        <div class="city-stat-label">服务人口</div>
+                    </div>
+                    <div class="city-stat">
+                        <div class="city-stat-number">30%</div>
+                        <div class="city-stat-label">效率提升</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="fields-grid">
+            <div class="field-card">
+                <div class="field-icon">🏘️</div>
+                <h3>智慧社区</h3>
+                <p>智能门禁、安防监控、物业服务数字化，打造安全便捷的现代化社区，提升居民生活品质和幸福感。</p>
+                <a href="#" class="field-link">了解更多 →</a>
+            </div>
+            <div class="field-card">
+                <div class="field-icon">🌳</div>
+                <h3>智慧环保</h3>
+                <p>空气质量监测、水资源管理、垃圾分类智能化，助力生态文明建设，守护绿水青山，实现可持续发展。</p>
+                <a href="#" class="field-link">了解更多 →</a>
+            </div>
+            <div class="field-card">
+                <div class="field-icon">🚨</div>
+                <h3>智慧应急</h3>
+                <p>灾害预警、应急响应、救援调度智能化，提升城市防灾减灾能力，保障人民生命财产安全，构建韧性城市。</p>
+                <a href="#" class="field-link">了解更多 →</a>
+            </div>
+        </div>
+    </section>
+
+ <!DOCTYPE html>
+<html lang="zh-CN">
+<!-- 保留原有头部代码，仅替换news模块部分 -->
+<!-- ...... 省略其他代码 ...... -->
+
+<section id="news" class="section">
+    <div class="section-header">
+        <div class="section-subtitle">NEWS & EVENTS</div>
+        <h2 class="section-title">最新动态</h2>
+        <p class="section-desc">关注研究院最新研究成果、合作项目及行业活动，把握人工智能发展脉搏。</p>
+    </div>
+    <!-- 改造后的新闻模块 -->
+    <div class="news-grid">
+        <!-- 新闻卡片1 -->
+        <div class="news-card">
+            <div class="news-image">
+                <!-- 新增：渐变遮罩 + 图标动效 -->
+                <div class="news-img-overlay"></div>
+                <span class="news-icon">🎉</span>
+                <!-- 新增：时间戳动效 -->
+                <div class="news-date">
+                    <div class="day">15</div>
+                    <div class="month">四月</div>
+                </div>
+            </div>
+            <div class="news-content">
+                <span class="news-category">研究成果</span>
+                <h3>Lmri-LLM-70B模型正式发布</h3>
+                <p>经过两年研发，我们的旗舰大语言模型正式对外发布，在多项国际基准测试中达到领先水平，为各行业提供强大AI能力支撑。</p>
+                <a href="#" class="news-link">
+                    查看详情 →
+                    <span class="link-icon">→</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- 新闻卡片2 -->
+        <div class="news-card">
+            <div class="news-image">
+                <div class="news-img-overlay"></div>
+                <span class="news-icon">🤝</span>
+                <div class="news-date">
+                    <div class="day">08</div>
+                    <div class="month">四月</div>
+                </div>
+            </div>
+            <div class="news-content">
+                <span class="news-category">合作签约</span>
+                <h3>与50个城市达成智慧城市合作</h3>
+                <p>研究院与全国50个城市政府签订战略合作协议，将共同推进城市数字化转型，打造智慧生活新样板，惠及千万市民。</p>
+                <a href="#" class="news-link">
+                    查看详情 →
+                    <span class="link-icon">→</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- 新闻卡片3 -->
+        <div class="news-card">
+            <div class="news-image">
+                <div class="news-img-overlay"></div>
+                <span class="news-icon">🏆</span>
+                <div class="news-date">
+                    <div class="day">22</div>
+                    <div class="month">三月</div>
+                </div>
+            </div>
+            <div class="news-content">
+                <span class="news-category">荣誉奖项</span>
+                <h3>荣获国家人工智能创新奖</h3>
+                <p>研究院凭借在大模型领域的突破性成果，荣获2025年度国家人工智能创新奖，这是对团队多年努力的最高肯定，我们将再接再厉。</p>
+                <a href="#" class="news-link">
+                    查看详情 →
+                    <span class="link-icon">→</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- 新闻卡片4 -->
+        <div class="news-card">
+            <div class="news-image">
+                <div class="news-img-overlay"></div>
+                <span class="news-icon">📢</span>
+                <div class="news-date">
+                    <div class="day">10</div>
+                    <div class="month">三月</div>
+                </div>
+            </div>
+            <div class="news-content">
+                <span class="news-category">学术活动</span>
+                <h3>举办首届大模型技术峰会</h3>
+                <p>来自全球2000余名专家学者齐聚北京，共同探讨大模型技术发展趋势，分享最新研究成果，推动行业交流合作，共绘AI发展蓝图。</p>
+                <a href="#" class="news-link">
+                    查看详情 →
+                    <span class="link-icon">→</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 新增新闻模块专属样式（追加到原有style标签内） -->
+<style>
+    /* 新闻模块特效增强 */
+    .news-card {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border-radius: 20px;
+    }
+    /* 卡片悬停上浮+阴影强化 */
+    .news-card:hover {
+        transform: translateY(-15px) scale(1.02);
+        box-shadow: 0 25px 60px rgba(37, 99, 235, 0.18);
+    }
+    /* 新闻图片区域改造 */
+    .news-image {
+        height: 220px;
+        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    /* 渐变遮罩层 */
+    .news-img-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            45deg,
+            rgba(37, 99, 235, 0.8) 0%,
+            rgba(124, 58, 237, 0.4) 100%
+        );
+        z-index: 1;
+        opacity: 0.7;
+        transition: opacity 0.4s;
+    }
+    .news-card:hover .news-img-overlay {
+        opacity: 0.9;
+    }
+    /* 新闻图标动效 */
+    .news-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 3rem;
+        color: white;
+        z-index: 2;
+        transition: all 0.5s;
+    }
+    .news-card:hover .news-icon {
+        transform: translate(-50%, -50%) scale(1.2);
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    }
+    /* 日期标签优化 */
+    .news-date {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 0.8rem 1.5rem;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        z-index: 3;
+        transition: all 0.3s;
+    }
+    .news-card:hover .news-date {
+        transform: scale(1.1);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    /* 链接动效 */
+    .news-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .link-icon {
+        display: inline-block;
+        transition: transform 0.3s;
+    }
+    .news-link:hover {
+        color: var(--secondary);
+    }
+    .news-link:hover .link-icon {
+        transform: translateX(5px);
+    }
+    /* 新闻内容渐入动画（可选） */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .news-content {
+        padding: 2rem;
+        animation: fadeInUp 0.6s ease-out;
+    }
+    /* 分类标签动效 */
+    .news-category {
+        color: var(--primary);
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: inline-block;
+        position: relative;
+    }
+    .news-category::after {
+        content: "";
+        position: absolute;
+        bottom: -4px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: var(--primary);
+        transition: width 0.3s;
+    }
+    .news-card:hover .news-category::after {
+        width: 100%;
+    }
+</style>
+
+<!-- ...... 保留原有其他模块代码 ...... -->
+</html>
+
+    <section id="contact" class="contact-section">
+        <div class="section-header">
+            <div class="section-subtitle">CONTACT US</div>
+            <h2 class="section-title">联系我们</h2>
+            <p class="section-desc">欢迎各界朋友垂询合作，让我们携手共创人工智能美好未来，推动技术落地应用。</p>
+        </div>
+        <div class="contact-container">
+            <div class="contact-info">
+                <h3>联系方式</h3>
+                <p>无论您是寻求技术合作、项目咨询还是人才交流，我们都期待与您的沟通。请填写右侧表单或直接通过以下方式联系我们，我们将在24小时内回复。</p>
+                <div class="contact-details">
+                    <div class="contact-item">
+                        <div class="contact-icon">📍</div>
+                        <div class="contact-text">
+                            <h4>地址</h4>
+                            <p>北京市海淀区中关村科技园<br>创新大厦A座18层</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">📞</div>
+                        <div class="contact-text">
+                            <h4>电话</h4>
+                            <p>010-8888-6666<br>400-123-4567</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">✉️</div>
+                        <div class="contact-text">
+                            <h4>邮箱</h4>
+                            <p>contact@lmri.cn<br>cooperation@lmri.cn</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="social-links">
+                    <a href="#" class="social-link">📱</a>
+                    <a href="#" class="social-link">💼</a>
+                    <a href="#" class="social-link">🐦</a>
+                    <a href="#" class="social-link">🎬</a>
+                </div>
+            </div>
+            <div class="contact-form-wrapper">
+                <h3>在线留言</h3>
+                <form>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">姓名 *</label>
+                            <input type="text" id="name" name="name" required placeholder="请输入您的姓名">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">邮箱 *</label>
+                            <input type="email" id="email" name="email" required placeholder="请输入您的邮箱">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">电话</label>
+                            <input type="tel" id="phone" name="phone" placeholder="请输入您的联系电话">
+                        </div>
+                        <div class="form-group">
+                            <label for="type">咨询类型 *</label>
+                            <select id="type" name="type" required>
+                                <option value="">请选择咨询类型</option>
+                                <option value="cooperation">技术合作</option>
+                                <option value="project">项目咨询</option>
+                                <option value="talent">人才招聘</option>
+                                <option value="media">媒体采访</option>
+                                <option value="other">其他咨询</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">留言内容 *</label>
+                        <textarea id="message" name="message" rows="6" required placeholder="请详细描述您的需求或问题..."></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">提交留言</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <a href="#" class="logo">
+                    <div class=""><img border="0" src="http://pan.cisa.cc/view.php/027c8a371b813a6b8379716c5f05e5af.png" width="300" height="182"></p></div>
+                    <span class="logo-text">域名转让：ai@altoai.cn</span>
+                </a>
+                <p></p>
+            </div>
+            <div class="footer-column">
+                <h4>快速链接</h4>
+                <ul>
+                    <li><a href="#overview">研究院概况</a></li>
+                    <li><a href="#fields">研究领域</a></li>
+                    <li><a href="#models">核心模型</a></li>
+                    <li><a href="#city">智慧城市</a></li>
+                    <li><a href="#news">新闻动态</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>服务支持</h4>
+                <ul>
+                    <li><a href="#">技术文档</a></li>
+                    <li><a href="#">API接口</a></li>
+                    <li><a href="#">开发者中心</a></li>
+                    <li><a href="#">常见问题</a></li>
+                    <li><a href="#">在线支持</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>关于我们</h4>
+                <ul>
+                    <li><a href="#">团队介绍</a></li>
+                    <li><a href="#">招贤纳士</a></li>
+                    <li><a href="#">合作伙伴</a></li>
+                    <li><a href="#">媒体报道</a></li>
+                    <li><a href="#">联系我们</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 LMRI.CN 大模型研究院 版权所有 | 京ICP备XXXXXXXX号 | 京公网安备XXXXXXXXXXXX</p>
+        <p style="margin-top: 1.15rem; font-size: 0.91rem;">本页面仅用于域名展示，不构成任何商业承诺</p>
+        </div>
+    </footer>
+</body><script>
+function createOrbitBackground() {
+    const bg = document.querySelector('.bg-animation');
+    
+    // 轨道配置
+    const orbitCount = 6;
+    const baseRadius = 80;
+    const radiusStep = 70;
+    const particlesPerOrbit = 8;
+    
+    // 创建轨道环（静态）
+    for (let i = 0; i < orbitCount; i++) {
+        const ring = document.createElement('div');
+        ring.className = 'orbit-ring';
+        const radius = baseRadius + i * radiusStep;
+        ring.style.width = (radius * 2) + 'px';
+        ring.style.height = (radius * 2) + 'px';
+        bg.appendChild(ring);
+    }
+    
+    // 创建轨道容器（带动粒子旋转）
+    for (let i = 0; i < orbitCount; i++) {
+        const orbit = document.createElement('div');
+        orbit.className = 'orbit-container';
+        
+        const radius = baseRadius + i * radiusStep;
+        orbit.style.width = (radius * 2) + 'px';
+        orbit.style.height = (radius * 2) + 'px';
+        
+        // 外层慢，内层快
+        const duration = 300 - i * 19;
+        orbit.style.animationDuration = duration + 's';
+        
+        // 奇数轨道反向
+        if (i % 2 === 1) {
+            orbit.style.animationDirection = 'reverse';
+        }
+        
+        // 在轨道上均匀分布粒子
+        for (let j = 0; j < particlesPerOrbit; j++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle-node';
+            
+            // 计算粒子角度（从顶部开始）
+            const angle = (j / particlesPerOrbit) * 2 * Math.PI - Math.PI / 2;
+            
+            // 粒子位置相对于轨道中心（用百分比定位）
+            const offsetX = Math.cos(angle) * radius;
+            const offsetY = Math.sin(angle) * radius;
+            
+            particle.style.left = `calc(50% + ${offsetX}px)`;
+            particle.style.top = `calc(50% + ${offsetY}px)`;
+            
+            // 发光延迟错开
+            particle.style.animationDelay = (j * 0.25) + 's';
+            
+            orbit.appendChild(particle);
+        }
+        
+        bg.appendChild(orbit);
+    }
+}
+
+window.addEventListener('load', createOrbitBackground);
+</script><body oncontextmenu="return false" onselectstart="return false" ondragstart="return false" onbeforecopy="return false" oncopy=document.selection.empty() onselect=document.selection.empty()>
+</html>
